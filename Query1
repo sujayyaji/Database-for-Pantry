@@ -1,0 +1,51 @@
+--Finding percent change in previous month sales and current month last year percent change in current month sales
+
+SELECT X.MONTH as Month, X.YEAR as Year, x.Quantity as "Current Month Sales", X.LastMonth as "Previous Month Sales",
+X.LastYearSameMonth as "Previous Year Sales",
+CASE
+	WHEN X.LastMonth = 0
+	THEN 0
+	ELSE ROUND(((X.Quantity - X.LastMonth)/X.LastMonth)*100,2)
+	END "Monthly Percent Change"
+	,
+CASE
+	WHEN X.LastYearSameMonth = 0
+	THEN 0
+	ELSE ROUND(((X.Quantity - X.LastYearSameMonth)/X.LastYearSameMonth)*100,2)
+	END "Annual Percent Change"
+from
+(SELECT Z.month AS MONTH, Z.year AS YEAR,
+Z.QUANTITY as Quantity,
+lag(coalesce(Z.QUANTITY,0),1) OVER (ORDER BY to_date( Z.year, 'YY' ), to_date( Z.month, 'MON' )) as LastMonth,
+lag(coalesce(Z.QUANTITY,0),12) OVER (ORDER BY to_date( Z.year, 'YY' ), to_date( Z.month, 'MON' )) as LastYearSameMonth
+ 
+FROM (
+WITH YEARMONTH AS (
+select to_char(add_months(to_date(sysdate, 'DD/MM/RRRR'), Z.INDEXNOS*-1), 'MON') as month,
+to_char(add_months(to_date(sysdate, 'DD/MM/RRRR'), Z.INDEXNOS*-1), 'YY') as year
+from
+(
+select level -1 as INDEXNOS
+from dual
+connect by level <= 36
+) Z),
+COUNTS AS
+(
+select SUM(ORDERDETAILSWEIGHT) AS QUANTITY, to_char(ORDERDETAILSDATETIMESTAMP,'MON') AS MONTH,
+to_char(ORDERDETAILSDATETIMESTAMP,'YY') AS YEAR
+from orderdetails
+GROUP BY to_char(ORDERDETAILSDATETIMESTAMP,'MON'), to_char(ORDERDETAILSDATETIMESTAMP,'YY')
+)
+SELECT YEARMONTH.month AS MONTH, YEARMONTH.year AS YEAR, COALESCE(COUNTS.QUANTITY,0) AS QUANTITY
+FROM YEARMONTH LEFT OUTER JOIN COUNTS
+ON YEARMONTH.MONTH = COUNTS.MONTH AND YEARMONTH.YEAR = COUNTS.YEAR
+order by to_date( YEARMONTH.year, 'YY' ), to_date( YEARMONTH.month, 'MON'))Z) X
+OFFSET 13 ROWS;
+
+
+--First, we create 36 index numbers from 0 to 35
+--Then, in YEARMONTH with clause we go 36 months back to count percent change for the last two years from current date.
+--Then, we use lag function to get Last Month and Last Year Same month values for Quantity in one row for
+--that corresponding combination of month and year.
+--Then, we calculate the percent change by using formula: (current value - previous value) / (previous value) * 100
+--Then we restrict the data to last 13 entries to get results only for the last 2 years from current date.
