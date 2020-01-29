@@ -1,0 +1,62 @@
+create or replace 
+PROCEDURE ANNUAL_DONOR_STATUS AS
+    CURSOR crsr_donors IS
+        SELECT DONORID, DONORLEVEL
+        FROM DONORS FOR UPDATE OF DONORLEVEL;
+
+    v_donor_level donors.donorlevel%type;
+    v_total_donations NUMBER(8,2) := 0;
+    v_money monetary.donationmonetaryvalue%type := 0;
+    v_weight inkind.estimatedmonetaryvalue%type:= 0;
+    v_curr_date date := sysdate;
+    v_curr_year NUMBER (4) := extract(year from v_curr_date);
+
+BEGIN
+    FOR row_donor in crsr_donors LOOP
+        v_total_donations := 0; -- start at 0
+
+        -- find total monetary donations and estimated monetary value of weight donations for a donor
+        WITH
+        mdata as (
+            SELECT sum(donationmonetaryvalue) as moneydonate
+            from monetary m
+            left outer join donations d on m.donationid = d.donationid
+            where d.donorid = row_donor.donorid
+                and extract(year from donationdate) = v_curr_year),
+        wdata as (
+            SELECT sum(estimatedmonetaryvalue) as weightdonate
+            from inkind i
+            left outer join donations d on i.donationid = i.donationid
+            where d.donorid = row_donor.donorid
+                and extract(year from donationdate) = v_curr_year)
+        select moneydonate, weightdonate
+        into v_money, v_weight
+        from mdata, wdata;
+
+        -- add these donation values into the total value
+        v_total_donations := v_money + v_weight;
+
+        -- use the total donations of a donor to figure out what level they are at
+        IF (v_total_donations >= 5000) THEN
+            v_donor_level := 'Gold';
+        ELSIF (v_total_donations >= 1000) THEN
+            v_donor_level := 'Silver';
+        ELSE
+            v_donor_level := 'Bronze';
+        END IF;
+
+        -- update the donor level column in donors table 
+        UPDATE donors SET donorlevel = v_donor_level WHERE CURRENT OF crsr_donors;
+    END LOOP;
+
+END;
+
+*/Donors make donations to the pantry. Donors table records name, 
+contact number, address, description, and email of the donors. This procedure is used to 
+classify the donors based on the monetary donations. The procedure uses a cursor to loop
+through all entries in donors table. It first finds the total number of monetary donations 
+and total estimated value of all “in kind” (food) donations for a donor in the current year. 
+If the donation is greater than or equal to 5000 then they are classified as Gold. If the donation 
+is greater than or equal to 1000 then they are classified as Silver and if the donation is less than 
+1000, they are classified as Bronze. Finally, the procedure updates donorlevel column as Gold, Silver,
+or Bronze based on the donor’s total amount donated for the current year.*/
