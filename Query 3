@@ -1,0 +1,31 @@
+--This query provides the number of students who have visited the campus pantry multiple times in a month 
+--and also provides the percent of orders from students that were repeated
+
+with ABC as (
+SELECT to_date(Z.MONTH, 'MM') as "Month", to_date(z.year, 'YY') as "Year",
+	COUNT(*) as "No of Students Repeating" FROM (
+select COUNT(*) AS Y, concat(studentID,TO_CHAR(orderdetailsdatetimestamp,'DDMONYY'))  AS X,
+EXTRACT(MONTH FROM orderdetailsdatetimestamp) AS MONTH, extract(year from orderdetailsdatetimestamp) as YEAR
+from orderdetails
+GROUP BY concat(studentID,TO_CHAR(orderdetailsdatetimestamp,'DDMONYY')), EXTRACT(MONTH FROM orderdetailsdatetimestamp),extract(year from orderdetailsdatetimestamp)
+HAVING COUNT(*) > 1) Z
+GROUP BY to_date(Z.MONTH, 'MM'), to_date(z.year, 'YY')),
+CBA as (
+Select TO_DATE(extract(month from orderdetailsdatetimestamp), 'MM') as "Month", to_date(extract(year from orderdetailsdatetimestamp), 'YY') as "Year",
+    count(orderdetailsno) as "Total No of Orders"
+from orderdetails
+group by TO_DATE(extract(month from orderdetailsdatetimestamp), 'MM'), to_date(extract(year from orderdetailsdatetimestamp), 'YY')
+)
+select to_char(cba."Month", 'MONTH') as "Month", to_char(cba."Year",'YYYY') as "Year", cba."Total No of Orders", coalesce(abc."No of Students Repeating",0) as "No of Students Repeating",
+    Round(((coalesce(abc."No of Students Repeating",0) / cba."Total No of Orders") * 100),2) || '%' as "Percent of Total"
+from cba
+left outer join abc on abc."Month" = cba."Month" and abc."Year" = cba."Year"
+order by cba."Year" desc, cba."Month" desc
+; 
+
+--In the first with clause date and the count is selected from inline select where
+--the count of students visiting the campus pantry is greater than 1. 
+--In the second clause, the total number of students visiting the pantry is obtained. 
+--Finally, the percent is obtained from the orders and the number of students repeating
+--and coalesce is used to round it off to the nearest integer. 
+--This query provides the change in percent for each month in the data and thus helps to improve business operations in the future
