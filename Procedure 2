@@ -1,0 +1,82 @@
+create or replace 
+procedure FORECAST (X OUT NUMBER, Y OUT NUMBER, Z OUT NUMBER)
+
+AS
+
+ORDERSTHATMONTHTHIS number;
+USERSTHATMONTHTHIS number;
+TOTALWEIGHTOFFOODTHIS number;
+ORDERSTHATMONTHLAST number;
+USERSTHATMONTHLAST number;
+TOTALWEIGHTOFFOODLAST number;
+ORDERSTHATMONTHLASTPREV number;
+USERSTHATMONTHLASTPREV number;
+TOTALWEIGHTOFFOODLASTPREV number;
+Xpct number;
+Ypct number;
+Zpct number;
+
+BEGIN
+
+SELECT COUNT(*), COUNT((STUDENTID)), COALESCE(SUM(ORDERDETAILSWEIGHT),0) 
+INTO ORDERSTHATMONTHTHIS, USERSTHATMONTHTHIS, TOTALWEIGHTOFFOODTHIS
+FROM ORDERDETAILS
+WHERE to_char(ORDERDETAILSDATETIMESTAMP,'MON') =
+    (select to_char(sysdate, 'MON') from dual)
+AND to_char(ORDERDETAILSDATETIMESTAMP,'YY') =
+    (select to_char(sysdate, 'YY') from dual);
+
+
+SELECT COUNT(*), COUNT((STUDENTID)), COALESCE(SUM(ORDERDETAILSWEIGHT),0) 
+INTO ORDERSTHATMONTHLAST, USERSTHATMONTHLAST, TOTALWEIGHTOFFOODLAST
+FROM ORDERDETAILS
+WHERE to_char(ORDERDETAILSDATETIMESTAMP,'MON') = 
+    (SELECT TO_CHAR( add_months( sysdate, -12 ), 'MON' ) FROM DUAL)
+AND to_char(ORDERDETAILSDATETIMESTAMP,'YY') = 
+    (SELECT TO_CHAR( add_months( sysdate, -12 ), 'YY' ) FROM DUAL);
+
+
+SELECT COUNT(*), COUNT((STUDENTID)), COALESCE(SUM(ORDERDETAILSWEIGHT),0) 
+INTO ORDERSTHATMONTHLASTPREV, USERSTHATMONTHLASTPREV, TOTALWEIGHTOFFOODLASTPREV
+FROM ORDERDETAILS
+WHERE to_char(ORDERDETAILSDATETIMESTAMP,'MON') = 
+    (SELECT TO_CHAR( add_months( sysdate, -11 ), 'MON' ) FROM DUAL)
+AND to_char(ORDERDETAILSDATETIMESTAMP,'YY') = 
+    (SELECT TO_CHAR( add_months( sysdate, -11 ), 'YY' ) FROM DUAL);
+
+
+IF ORDERSTHATMONTHLASTPREV = 0
+THEN Xpct := 0;
+ELSE
+Xpct := (ORDERSTHATMONTHLAST - ORDERSTHATMONTHLASTPREV) / ORDERSTHATMONTHLASTPREV;
+END IF;
+
+
+IF USERSTHATMONTHLASTPREV = 0
+THEN Ypct := 0;
+ELSE
+Ypct := ((USERSTHATMONTHLAST - USERSTHATMONTHLASTPREV) / USERSTHATMONTHLASTPREV);
+END IF;
+
+
+IF TOTALWEIGHTOFFOODLAST = 0
+THEN Zpct := 0;
+ELSE
+Zpct := (TOTALWEIGHTOFFOODLAST - TOTALWEIGHTOFFOODLAST) / TOTALWEIGHTOFFOODLAST;
+END IF;
+
+
+X := ORDERSTHATMONTHTHIS * Xpct;
+Y := USERSTHATMONTHTHIS * Ypct;
+Z := TOTALWEIGHTOFFOODTHIS * Zpct;
+
+END;
+
+
+*/This procedure is used to forecast next month’s total orders, number of 
+users and total food weight by multiplying the percentage change during
+the prior year current month and prior year next month. The procedure finds 
+the sum of details for previous month, details from next month of previous year
+and details from current month of previous year. Next, it finds the percentage change. 
+Finally, next month details are calculated by multiplying the percentage change.*/
+
