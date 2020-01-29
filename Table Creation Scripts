@@ -1,0 +1,323 @@
+CREATE TABLE VENDORS (
+vendorID varchar2(5) constraint VENDORS_PK PRIMARY KEY,
+vendorName varchar2(50) NOT NULL,
+vendorAddress varchar2(150) NOT NULL,
+vendorEmailID varchar2(100),
+vendorContactNo varchar2(15),
+vendorDescription varchar2(100),
+CONSTRAINT unique_address unique constraint on vendorAddress
+);
+ 
+ 
+CREATE TABLE PURCHASEORDERS (
+purchaseOrderNo varchar2 (10) constraint PURCHASEDATETIMESTAMP_PK PRIMARY KEY,
+vendorID varchar2(5) NOT NULL,
+purchaseOrdersDate date,
+purchaseOrdersDescription varchar2(150),
+CONSTRAINT po_vendor_fk FOREIGN KEY (vendorID) REFERENCES VENDORS (vendorID)
+);
+
+ 
+CREATE TABLE WEIGHTORDERED (
+productID varchar2(5),
+purchaseOrderNo varchar2(10),
+quantity number (4) NOT NULL,
+costPerItem number (6,2) NOT NULL,
+totalPrice number (6,2) NOT NULL,
+weightStored number (6,2),
+constraint QUANTITYORDERED_pk PRIMARY KEY (productID, purchaseOrderNo), 
+constraint QUANTITYORDERED_PID_fk FOREIGN KEY (productID) REFERENCES PRODUCTS (productID),
+constraint QUANTITYORDERED_PON_fk FOREIGN KEY (purchaseOrderNo) REFERENCES PURCHASEORDERS (purchaseOrderNo)
+);
+ 
+CREATE TABLE PRODUCTS (
+productID varchar2(5) constraint PRODUCTS_PK PRIMARY KEY,
+productName varchar2(50) NOT NULL,
+productDescription varchar2 (150),
+productWeight number (5,2) NOT NULL,
+productEstimatedCost number (5,2) NOT NULL,
+Constraint products_cost check constraint (productestimatedcost <= 50)
+);
+create table PRODUCE_PRODUCTS (
+productID varchar2 (5),
+estimatedTimeUntilExpiration varchar2 (10),
+CONSTRAINT pp_pk PRIMARY KEY (productID),
+CONSTRAINT pp_prodid_fk FOREIGN KEY (productID) REFERENCES PRODUCTS (productID)
+);
+ 
+ 
+create table NONPERISHABLES_PRODUCTS (
+productID varchar2 (5),
+isGlutenFree varchar2 (3) check (isGlutenFree IN ('Yes','No')),
+CONSTRAINT npp_pk PRIMARY KEY (productID),
+CONSTRAINT npp_fk FOREIGN KEY (productID) REFERENCES PRODUCTS (productID)
+);
+ 
+ 
+create table WAREHOUSE (
+warehouseID varchar2 (5),
+warehouseEmailID varchar2 (100),
+warehouseContactNo varchar2 (15) NOT NULL,
+warehouseDescription varchar2 (50),
+warehouseName varchar2 (50) NOT NULL,
+wQuantityStored number (10,2),
+warehouseAddress varchar2 (150) NOT NULL,
+constraint WAREHOUSE_PK PRIMARY KEY (warehouseID)
+);
+ 
+ 
+CREATE TABLE ORGANIZATIONS (
+orgID varchar2 (5) constraint org_PK PRIMARY KEY,
+orgName varchar2 (100) NOT NULL,
+orgDescription varchar2 (150),
+orgContactNo varchar2 (15) NOT NULL,
+orgEmailID varchar2 (100),
+orgAddress varchar2 (150)
+);
+ 
+ 
+create table DONATIONDETAILS (
+ddID varchar2 (5),
+orgID varchar2 (5) NOT NULL,
+warehouseID varchar2 (5) NOT NULL,
+donatedTotalWeight number (6,2) NOT NULL,
+donatedNumberOfBags number (3),
+donatedLocation varchar2(50),
+donatedDate date,
+constraint dd_pk PRIMARY KEY (ddID, orgID, warehouseID),
+constraint dd_org_fk FOREIGN KEY (orgID) REFERENCES ORGANIZATIONS (orgID),
+constraint dd_warehouse_fk FOREIGN KEY (warehouseID) REFERENCES WAREHOUSE
+(warehouseID)
+);
+ 
+ 
+CREATE TABLE PANTRY (
+pantryID varchar2 (5) constraint pantry_PK PRIMARY KEY,
+pantryName varchar2 (20) NOT NULL,
+pantryAddress varchar2 (100) NOT NULL,
+pantryContactNo varchar2 (15) NOT NULL,
+pantryEmailID varchar2 (100),
+pantryDescription varchar2 (100)
+);
+ 
+ 
+CREATE TABLE STUDENTS (
+studentID varchar2 (8) CONSTRAINT STUDENTS_PK PRIMARY KEY,
+studentFName varchar2 (30),
+studentLName varchar2 (30),
+studentDOB date,
+studentEmail varchar2 (100),
+studentAddress varchar2 (150),
+studentContactNo varchar2 (15)
+);
+ 
+ 
+create table ORDERDETAILS (
+orderDetailsNo varchar2 (20),
+pantryID varchar2 (5) NOT NULL,
+studentID varchar2 (8) NOT NULL,
+orderDetailsWeight number (5,2) NOT NULL,
+orderDetailsDateTimeStamp TIMESTAMP,
+orderDetailsEstimatedCost number (6,2),
+constraint orddet_pk PRIMARY KEY (orderDetailsNo, pantryID, studentID),
+constraint od_pantry_fk FOREIGN KEY (pantryID) REFERENCES PANTRY (pantryID),
+constraint od_student_fk FOREIGN KEY (studentID) REFERENCES STUDENTS (studentID)
+);
+ 
+ 
+CREATE TABLE STAFF (
+staffID varchar2(8) CONSTRAINT STAFF_PK PRIMARY KEY,
+staffFName varchar2(20) NOT NULL,
+staffLName varchar2(20) NOT NULL,
+staffDOB date,
+staffAddress varchar2(150),
+staffContactNo varchar2(15),
+staffEmailID varchar2(100),
+staffWeeklyOperatingHours varchar2(20),
+staffStartDate date,
+staffEndDate date,
+staffWeeklyDistributionHours varchar2(20),
+Constraint ua_email check constraint (staffemailid like ‘%@email.arizona.edu’)
+);
+ 
+ 
+create table COORDINATOR (
+staffID varchar2 (8),
+degreeObtained varchar2 (3) check (degreeObtained IN ('Yes','No')),
+CONSTRAINT co_pk PRIMARY KEY (staffID),
+CONSTRAINT co_fk FOREIGN KEY (staffID) REFERENCES STAFF (staffID)
+);
+ 
+ 
+CREATE TABLE STUDENTDIRECTOR (
+staffID varchar2 (8),
+yearsInSchool varchar2 (10),
+CONSTRAINT STUDENTDIRECTOR_PK PRIMARY KEY (staffID),
+CONSTRAINT STUDENTDIRECTOR_FK FOREIGN KEY (staffID) REFERENCES STAFF (staffID)
+);
+create table CHAIRS (
+staffID varchar2 (8),
+focusArea varchar2 (30),
+CONSTRAINT chairs_pk PRIMARY KEY (staffID),
+CONSTRAINT chairs_id_fk FOREIGN KEY (staffID) REFERENCES STAFF (staffID)
+);
+ 
+ 
+create table GRADUATEASSISTANTS (
+staffID varchar2 (8),
+trainingCompleted varchar2 (3) check (trainingCompleted IN ('Yes','No')),
+CONSTRAINT ga_pk PRIMARY KEY (staffID),
+CONSTRAINT ga_staff_fk FOREIGN KEY (staffID) REFERENCES STAFF (staffID)
+);
+ 
+ 
+CREATE TABLE VOLUNTEERS (
+staffID varchar2 (8),
+graduationDate date,
+CONSTRAINT VOLUNTEERS_PK PRIMARY KEY (staffID),
+CONSTRAINT VOLUNTEERS_FK FOREIGN KEY (staffID) REFERENCES STAFF (staffID)
+);
+ 
+ 
+CREATE TABLE SHIFTTEAM (
+shiftTeamID varchar2 (5) CONSTRAINT SHITFTTEAM_PK PRIMARY KEY,
+shiftTeamDate date,
+shiftTeamStartTime varchar2 (10),
+shiftTeamEndTime varchar2 (10)
+);
+ 
+ 
+create table COMPRISE_COORDINATOR (
+staffID varchar2 (8),
+shiftTeamID varchar2 (5),
+constraint comprise_coordinator_PK PRIMARY KEY (StaffID, shiftTeamID),
+constraint cco_StaffID_fk FOREIGN KEY (StaffID) REFERENCES COORDINATOR(StaffID),
+constraint cco_shiftTeamID_fk FOREIGN KEY (shiftTeamID) REFERENCES SHIFTTEAM (shiftTeamID)
+);
+ 
+ 
+create table COMPRISE_STUDENTDIRECTOR (
+staffID varchar2 (8),
+shiftTeamID varchar2 (5),
+constraint comprise_sd_PK PRIMARY KEY (StaffID, shiftTeamID),
+constraint sd_StaffID_fk FOREIGN KEY (StaffID) REFERENCES STUDENTDIRECTOR(StaffID),
+constraint sd_shiftTeamID_fk FOREIGN KEY (shiftTeamID) REFERENCES SHIFTTEAM (shiftTeamID)
+);
+ 
+ 
+create table COMPRISE_CHAIRS (
+staffID varchar2 (8),
+shiftTeamID varchar2 (5),
+constraint comprise_chairs_PK PRIMARY KEY (StaffID, shiftTeamID),
+constraint comprise_chairs_fk FOREIGN KEY (StaffID) REFERENCES CHAIRS(StaffID),
+constraint cc_shiftTeamID_fk FOREIGN KEY (shiftTeamID) REFERENCES SHIFTTEAM (shiftTeamID)
+);
+ 
+create table COMPRISE_GRADUATEASSISTANTS (
+staffID varchar2 (8),
+shiftTeamID varchar2 (5),
+constraint comprise_ga_PK PRIMARY KEY (StaffID, shiftTeamID),
+constraint ga_StaffID_fk FOREIGN KEY (StaffID) REFERENCES GRADUATEASSISTANTS(StaffID),
+constraint ga_shiftTeamID_fk FOREIGN KEY (shiftTeamID) REFERENCES SHIFTTEAM (shiftTeamID)
+);
+ 
+ 
+create table COMPRISE_VOLUNTEERS (
+staffID varchar2 (8),
+shiftTeamID varchar2 (5),
+constraint comprise_volunteers_PK PRIMARY KEY (StaffID, shiftTeamID),
+constraint v_StaffID_fk FOREIGN KEY (StaffID) REFERENCES VOLUNTEERS(StaffID),
+constraint v_shiftTeamID_fk FOREIGN KEY (shiftTeamID) REFERENCES SHIFTTEAM (shiftTeamID)
+);
+ 
+ 
+create table WASTED (
+warehouseID varchar2 (5),
+wastedDateTimeStamp timestamp NOT NULL,
+wastedQuantity number (8,2) NOT NULL,
+wastedEstimatedCost number (8,2),
+constraint WH_TRANSACTION_SOURCE_PK PRIMARY KEY (wastedDateTimeStamp, warehouseID),
+constraint wasted_warehouseID_fk FOREIGN KEY (warehouseID) REFERENCES WAREHOUSE (warehouseID)
+);
+ 
+ 
+CREATE TABLE DONORS (
+donorID varchar2 (5) constraint donor_PK PRIMARY KEY,
+donorName varchar2 (50) NOT NULL,
+donorContactNo varchar2 (15) NOT NULL,
+donorAddress varchar2 (150),
+donorDescription varchar2 (150),
+donorEmailID varchar2 (100)
+);
+ 
+ 
+CREATE TABLE DONATIONS (
+donationID varchar2 (5) constraint donations_PK PRIMARY KEY,
+donationDate date NOT NULL,
+donationGiftType varchar2 (15) NOT NULL,
+donorID varchar2 (15),
+CONSTRAINT donations_fk FOREIGN KEY (donorID) REFERENCES DONORS (donorID)
+);
+ 
+ 
+create table INKIND (
+donationID varchar2 (5),
+foodDescription varchar2 (150),
+donationWeight number (6,2) NOT NULL,
+estimatedMonetaryValue NUMBER (8,2),
+CONSTRAINT ik_pk PRIMARY KEY (donationID),
+CONSTRAINT ik_donation_fk FOREIGN KEY (donationID) REFERENCES DONATIONS (donationID)
+);
+ 
+ 
+create table MONETARY (
+donationID varchar2 (5),
+donationMonetaryValue number (8,2) NOT NULL,
+CONSTRAINT monetary_pk PRIMARY KEY (donationID),
+CONSTRAINT monetary_donation_fk FOREIGN KEY (donationID) REFERENCES DONATIONS (donationID)
+);
+ 
+ 
+create table WAREHOUSESTOCK (
+whsNo varchar2 (10),
+whsQuantityStored number (6,2) NOT NULL,
+whsDateTimeStamp timestamp,
+warehouseID varchar2(5),
+productID varchar2(5),
+constraint WAREHOUSESTOCK_PK PRIMARY KEY (whsNo, warehouseID, productID),
+constraint warehouseID_fk FOREIGN KEY (warehouseID) REFERENCES WAREHOUSE (warehouseID),
+constraint purchaseDateTimeStamp_fk FOREIGN KEY (productID) REFERENCES PRODUCTS (productID)
+);
+
+
+ 
+ 
+CREATE TABLE TRANSACTIONDETAILS (
+transactionID varchar2 (8) CONSTRAINT TD_PK PRIMARY KEY,
+transactionWeight number (6,2) NOT NULL,
+transactionDateTimeStamp timestamp NOT NULL,
+transactionDescription varchar2 (150),
+pantryID varchar2(5) NOT NULL,
+shiftTeamID varchar2(5) NOT NULL,
+warehouseID varchar2(5) NOT NULL,
+CONSTRAINT TD_FK_1 FOREIGN KEY (pantryID) REFERENCES PANTRY,
+CONSTRAINT TD_FK_2 FOREIGN KEY (shiftTeamID) REFERENCES SHIFTTEAM,
+CONSTRAINT TD_FK_3 FOREIGN KEY (warehouseID) REFERENCES WAREHOUSE
+);
+ 
+ 
+CREATE TABLE PURCHASECONSISTSPRODUCTS (
+productID varchar2(5),
+purchaseDateTimeStamp timestamp,
+constraint pcp_pk PRIMARY KEY (productID, purchaseDateTimeStamp),
+constraint pcp_PID_fk FOREIGN KEY (productID) REFERENCES PRODUCTS (productID),
+constraint pcp_PDTS_fk FOREIGN KEY (purchaseDateTimeStamp) REFERENCES PURCHASEORDERS (purchaseDateTimeStamp)
+);
+
+Create table APP_USERS (
+ID number(10,0) NOT NULL
+USERNAME varchar2(30) NOT NULL,
+PASSWORD varchar2(40) NOT NULL,
+Primary key app_users_pk primary key (id),
+Constraint app_users_uk unique constraint username;
+			
