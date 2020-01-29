@@ -1,0 +1,70 @@
+CREATE SEQUENCE  "FIVETHIRTYFUN"."DONATIONID_SEQUENCE"  MINVALUE 0 MAXVALUE 9999 INCREMENT BY 1 START WITH 0 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+
+--------------------------------------------------------
+--  DDL for Sequence DONORID_SEQUENCE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "FIVETHIRTYFUN"."DONORID_SEQUENCE"  MINVALUE 1 MAXVALUE 9999 INCREMENT 
+   BY 1 START WITH 70 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+--------------------------------------------------------
+--  DDL for Sequence ORDERDETAILSNO_SEQUENCE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "FIVETHIRTYFUN"."ORDERDETAILSNO_SEQUENCE"  MINVALUE 1 MAXVALUE 9999 INCREMENT 
+   BY 1 START WITH 240 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+--------------------------------------------------------
+--  DDL for Sequence PANTRYID_SEQUENCE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "FIVETHIRTYFUN"."PANTRYID_SEQUENCE"  MINVALUE 0 MAXVALUE 9999 INCREMENT 
+   BY 1 START WITH 40 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+--------------------------------------------------------
+--  DDL for Sequence PRODUCTID_SEQUENCE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "FIVETHIRTYFUN"."PRODUCTID_SEQUENCE"  MINVALUE 1 MAXVALUE 9999 INCREMENT 
+   BY 1 START WITH 146 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+--------------------------------------------------------
+--  DDL for Sequence PURCHASEORDER_ID_SEQUENCE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "FIVETHIRTYFUN"."PURCHASEORDER_ID_SEQUENCE"  MINVALUE 1 MAXVALUE 999999999 INCREMENT 
+BY 1 START WITH 191 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+--------------------------------------------------------
+--  DDL for Sequence STAFFID_SEQUENCE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "FIVETHIRTYFUN"."STAFFID_SEQUENCE"  MINVALUE 30 MAXVALUE 9999999 INCREMENT 
+   BY 1 START WITH 30 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+--------------------------------------------------------
+--  DDL for Sequence VENDORID_SEQUENCE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "FIVETHIRTYFUN"."VENDORID_SEQUENCE"  MINVALUE 1 MAXVALUE 9999 INCREMENT
+   BY 1 START WITH 47 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+--------------------------------------------------------
+--  DDL for Sequence WAREHOUSID_SEQUENCE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "FIVETHIRTYFUN"."WAREHOUSID_SEQUENCE"  MINVALUE 1 MAXVALUE 9999 INCREMENT
+   BY 1 START WITH 65 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+--------------------------------------------------------
+--  DDL for Sequence WHSORDERNO_ID_SEQUENCE
+--------------------------------------------------------
+
+   CREATE SEQUENCE  "FIVETHIRTYFUN"."WHSORDERNO_ID_SEQUENCE"  MINVALUE 1 MAXVALUE 999999999 INCREMENT
+   BY 1 START WITH 26 CACHE 20 NOORDER  NOCYCLE  NOPARTITION ;
+
+
+
+
+
