@@ -1,0 +1,61 @@
+create or replace procedure usp_weightordered_insert (
+	   productidT IN weightordered.productid%TYPE,
+       purchaseordernoT IN weightordered.purchaseorderno%TYPE,
+       quantityT IN weightordered.quantity%TYPE,
+       costperitemT IN weightordered.costperitem%TYPE,
+       warehouseidT IN warehouse.warehouseid%type)
+IS
+
+totalpriceT weightordered.totalprice%TYPE;
+WEIGHTSTOREDT weightordered.WEIGHTSTORED%TYPE;
+productweightT products.productweight%TYPE;
+temp_wsid warehousestock.whsorderno%TYPE;
+wqs warehouse.WQUANTITYSTORED%TYPE;
+
+BEGIN
+   totalpriceT := quantityT*costperitemT;
+
+   SELECT PRODUCTWEIGHT INTO PRODUCTWEIGHTT 
+   FROM PRODUCTS
+   WHERE PRODUCTID = productidT;
+
+   WEIGHTSTOREDT := quantityT*productweightT;
+
+  INSERT INTO weightordered (productid, purchaseorderno, quantity, costperitem, totalprice, WEIGHTSTORED) 
+  VALUES (productidT, purchaseordernoT, quantityT, costperitemT, totalpriceT, WEIGHTSTOREDT);
+
+  SELECT 'W' || to_char(productid_sequence.nextval,'FM000000000') INTO temp_wsid FROM dual;
+
+  INSERT INTO WAREHOUSESTOCK (whsorderno, whsquantitystored, whsdatetimestamp, warehouseid,productid) 
+  VALUES (temp_wsid, WEIGHTSTOREDT, current_timestamp, warehouseidT, productidT);
+
+  SELECT WQUANTITYSTORED INTO wqs 
+  FROM WAREHOUSE 
+  WHERE WAREHOUSEID = warehouseidT;
+
+  wqs := wqs + WEIGHTSTOREDT;
+
+  UPDATE WAREHOUSE
+  SET WQUANTITYSTORED = wqs
+  WHERE WAREHOUSEID = warehouseidT;
+
+  COMMIT;
+
+END;
+
+*/In this procedure, we are trying to replicate changes 
+in one table across multiple tables. Whenever we generate a 
+purchase order, we have to insert product items in the weightordered table. 
+Weight for those items can be found from products master table and we take that 
+unit weight and multiple it with the weight stored. This is weight that goes into
+the warehousestock. So every insert in weightordered bumps up the warehousestock.
+This bumped up warehouse stock has to reflect changes in some warehouse which is how we
+take the input warehouseid and update wquantity stored with weight equivalent to  (wqs + WEIGHTSTOREDT)*/
+
+
+
+
+
+
+
+
