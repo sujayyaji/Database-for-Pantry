@@ -1,0 +1,65 @@
+ --This query provides the net weight of food items, food given away,
+ --donated food, food ordered, quantity wasted, quantity purchased for each month 
+ 
+ with x as (
+	select EXTRACT(MONTH FROM D.DONATIONDATE) || '-' || EXTRACT(YEAR FROM D.DONATIONDATE) AS "DONATED MONTH",
+        sum(ik.donationweight) as "Weight Donated"
+	from donations d join inkind ik on d.donationid=ik.donationid
+	GROUP BY EXTRACT(MONTH FROM D.DONATIONDATE) || '-' || EXTRACT(YEAR FROM D.DONATIONDATE)
+	ORDER BY EXTRACT(MONTH FROM D.DONATIONDATE) || '-' || EXTRACT(YEAR FROM D.DONATIONDATE)),
+y as (
+	SELECT EXTRACT(MONTH FROM PO.PURCHASEORDERSDATE) || '-' || EXTRACT(YEAR FROM PO.PURCHASEORDERSDATE) AS "PURCHASE MONTH",
+        SUM(WO.QUANTITY) AS "QUANTITY PURCHASED"
+	FROM WEIGHTORDERED WO JOIN PURCHASEORDERS PO ON WO.PURCHASEORDERNO=PO.PURCHASEORDERNO
+	GROUP BY EXTRACT(MONTH FROM PO.PURCHASEORDERSDATE) || '-' || EXTRACT(YEAR FROM PO.PURCHASEORDERSDATE)
+	ORDER BY EXTRACT(MONTH FROM PO.PURCHASEORDERSDATE) || '-' || EXTRACT(YEAR FROM PO.PURCHASEORDERSDATE) ),
+z as (
+	SELECT EXTRACT(MONTH FROM W.WASTEDDATETIMESTAMP) || '-' || EXTRACT(YEAR FROM W.WASTEDDATETIMESTAMP) AS "WASTED MONTH",
+        sum(W.WASTEDQUANTITY) AS "QUANTITY WASTED"
+	FROM WASTED W
+	GROUP BY EXTRACT(MONTH FROM W.WASTEDDATETIMESTAMP) || '-' || EXTRACT(YEAR FROM W.WASTEDDATETIMESTAMP)
+	ORDER BY EXTRACT(MONTH FROM W.WASTEDDATETIMESTAMP) || '-' || EXTRACT(YEAR FROM W.WASTEDDATETIMESTAMP) ),
+a as (
+	SELECT EXTRACT(MONTH FROM DD.DONATEDDATE) || '-' || EXTRACT(YEAR FROM DD.DONATEDDATE) AS "DONATED MONTH",
+    	SUM(DD.DONATEDTOTALWEIGHT) as "GIVEN AWAY" FROM DONATIONDETAILS DD
+	GROUP BY EXTRACT(MONTH FROM DD.DONATEDDATE) || '-' || EXTRACT(YEAR FROM DD.DONATEDDATE)
+	ORDER BY EXTRACT(MONTH FROM DD.DONATEDDATE) || '-' || EXTRACT(YEAR FROM DD.DONATEDDATE) ),
+b as (
+	SELECT EXTRACT(MONTH FROM OD.ORDERDETAILSDATETIMESTAMP) || '-' || EXTRACT(YEAR FROM OD.ORDERDETAILSDATETIMESTAMP) AS "ORDERED MONTH",
+        SUM(OD.ORDERDETAILSWEIGHT) as "FOOD ORDERED"
+	FROM ORDERDETAILS OD
+	GROUP BY EXTRACT(MONTH FROM OD.ORDERDETAILSDATETIMESTAMP) || '-' || EXTRACT(YEAR FROM OD.ORDERDETAILSDATETIMESTAMP)
+	ORDER BY EXTRACT(MONTH FROM OD.ORDERDETAILSDATETIMESTAMP) || '-' || EXTRACT(YEAR FROM OD.ORDERDETAILSDATETIMESTAMP) ),
+yearmonth as (
+select to_char(add_months(to_date(sysdate, 'DD/MM/RRRR'), Z.INDEXNOS*-1), 'MM') || '-' ||
+to_char(add_months(to_date(sysdate, 'DD/MM/RRRR'), Z.INDEXNOS*-1), 'YYYY') as yearmonth,
+to_char(add_months(to_date(sysdate, 'DD/MM/RRRR'), Z.INDEXNOS*-1), 'MM') AS MONTH,
+to_char(add_months(to_date(sysdate, 'DD/MM/RRRR'), Z.INDEXNOS*-1), 'YYYY') AS YEAR
+from
+(
+select level -1 as INDEXNOS
+from dual
+connect by level <= 24
+) Z
+)
+SELECT yearmonth.yearmonth as "Month - Year", COALESCE((COALESCE(SUM(x."Weight Donated"),0)+COALESCE(SUM(y."QUANTITY PURCHASED"),0)-COALESCE(SUM(z."QUANTITY WASTED"),0)
+-COALESCE(SUM(a."GIVEN AWAY"),0)-COALESCE(SUM(b."FOOD ORDERED"),0)),0) as "Net Weight",
+COALESCE(SUM(x."Weight Donated"),0) AS "Weight Donated", COALESCE(SUM(y."QUANTITY PURCHASED"),0) AS "QUANTITY PURCHASED",
+COALESCE(SUM(z."QUANTQueryITY WASTED"),0) AS "QUANTITY WASTED", COALESCE(SUM(a."GIVEN AWAY"),0) AS "GIVEN AWAY",
+COALESCE(SUM(b."FOOD ORDERED"),0) AS "FOOD ORDERED", yearmonth.YEAR AS Year, yearmonth.MONTH as Month
+FROM YEARMONTH
+   left JOIN X ON YEARMONTH.YEARMONTH = x."DONATED MONTH"
+   left JOIN y ON YEARMONTH.YEARMONTH=y."PURCHASE MONTH"
+   left JOIN z ON YEARMONTH.YEARMONTH=z."WASTED MONTH"
+   left JOIN a on YEARMONTH.YEARMONTH=a."DONATED MONTH"
+   left JOIN b on YEARMONTH.YEARMONTH = b."ORDERED MONTH"
+GROUP BY yearmonth.yearmonth, yearmonth.YEAR, yearmonth.MONTH
+ORDER BY yearmonth.YEAR, yearmonth.MONTH;
+
+
+--The query gives the net weight which is taken by the difference of food in and food out.
+--In the first clause, a month is extracted from the date timestamp or the date from each of 
+--the tables and finally joined on the month. 
+--The index is used to obtain the month for two years because this index is from 1-12 so that 
+--we have 12 months each and finally coalesce is used to round up the numbers. 
+--The output has been joined on month in order to obtain the weight for each month
