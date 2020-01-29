@@ -1,0 +1,31 @@
+*/In this query, we try to compare, the transaction weight flowing from warehouse to pantry
+with order details weight to keep Campus Pantry updated with status of every pantry whether 
+there is a need to refill the pantry with food*/
+
+with x as (
+SELECT P.PANTRYID AS "PID", SUM(TD.TRANSACTIONWEIGHT) AS "QUANTITY COMING IN"  	
+FROM PANTRY P JOIN TRANSACTIONDETAILS TD ON
+P.PANTRYID=TD.PANTRYID
+GROUP BY P.PANTRYID
+ORDER BY P.PANTRYID) ,
+ 
+y as (
+SELECT OD.PANTRYID AS "PANTRYID", SUM(OD.ORDERDETAILSWEIGHT) AS "QUANTITY GIVEN AWAY"
+FROM ORDERDETAILS OD 
+GROUP BY OD.PANTRYID
+ORDER BY OD.PANTRYID
+)
+ 
+SELECT y."PANTRYID" AS "PANTRY ID",
+CASE
+WHEN (x."QUANTITY COMING IN"-y."QUANTITY GIVEN AWAY")>40 THEN 'SAFE'
+WHEN (x."QUANTITY COMING IN"-y."QUANTITY GIVEN AWAY")<40 THEN 'FOOD NEEDS TO BE LOADED'
+WHEN (x."QUANTITY COMING IN"-y."QUANTITY GIVEN AWAY")>200 THEN 'WE HAVE SUFFICIENT FOOD'
+END AS "PANTRY STOCK CONDITION"
+FROM X JOIN Y ON X."PID"=Y."PANTRYID"
+GROUP BY y."PANTRYID"
+
+*/First with calculated the transaction weight as Quantity Coming In to every Pantry
+In second with, we calculate order details weight as Quantity Given Away for every Pantry
+Then we subtract values from both withs to calculate the net weight difference and then we use case statement to classify all pantry in
+different classes like ‘SAFE’, ‘FOOD NEEDS TO BE LOADED’, ‘WE HAVE SUFFICENT FOOD’*/
